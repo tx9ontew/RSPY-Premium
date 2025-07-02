@@ -1,0 +1,648 @@
+-- RSPY 3.0 PREMIUM (Fully Functional)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
+local localPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local mouse = localPlayer:GetMouse()
+
+--= Premium Apple Glass UI =--
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Name = "RSPY_PREMIUM"
+ScreenGui.ResetOnSpawn = false
+
+-- Main Container
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.85, 0, 0.75, 0)
+mainFrame.Position = UDim2.new(0.075, 0, 0.125, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+mainFrame.BackgroundTransparency = 0.15
+mainFrame.Parent = ScreenGui
+
+-- Glass Effect
+local glass = Instance.new("ImageLabel")
+glass.Size = UDim2.new(1, 0, 1, 0)
+glass.Image = "rbxassetid://8992231221"
+glass.ImageTransparency = 0.85
+glass.BackgroundTransparency = 1
+glass.ZIndex = 0
+glass.Parent = mainFrame
+
+-- Rounded Corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.04, 0)
+corner.Parent = mainFrame
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0.07, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+titleBar.Parent = mainFrame
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0.04, 0)
+
+local title = Instance.new("TextLabel")
+title.Text = "RSPY 3.0 PREMIUM"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(0.7, 0, 1, 0)
+title.Position = UDim2.new(0.15, 0, 0, 0)
+title.Parent = titleBar
+
+-- Tabs Container
+local tabsContainer = Instance.new("Frame")
+tabsContainer.Size = UDim2.new(0.95, 0, 0.07, 0)
+tabsContainer.Position = UDim2.new(0.025, 0, 0.08, 0)
+tabsContainer.BackgroundTransparency = 1
+tabsContainer.Parent = mainFrame
+
+-- Tab Buttons
+local tabNames = {"Player", "Visuals", "Combat", "World"}
+local tabs = {}
+local tabButtons = {}
+
+for i, name in ipairs(tabNames) do
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Text = name
+    tabBtn.Size = UDim2.new(0.23, 0, 1, 0)
+    tabBtn.Position = UDim2.new(0.24 * (i-1), 0, 0, 0)
+    tabBtn.BackgroundColor3 = i == 1 and Color3.fromRGB(0, 120, 215) or Color3.fromRGB(50, 50, 70)
+    tabBtn.TextColor3 = Color3.new(1, 1, 1)
+    tabBtn.Font = Enum.Font.GothamMedium
+    tabBtn.TextSize = 14
+    tabBtn.Parent = tabsContainer
+    Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0.3, 0)
+    
+    local tab = Instance.new("ScrollingFrame")
+    tab.Name = name
+    tab.Size = UDim2.new(0.95, 0, 0.8, 0)
+    tab.Position = UDim2.new(0.025, 0, 0.16, 0)
+    tab.Visible = i == 1
+    tab.BackgroundTransparency = 1
+    tab.ScrollBarThickness = 0
+    tab.Parent = mainFrame
+    tabs[name] = tab
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 8)
+    layout.Parent = tab
+    
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, t in pairs(tabs) do t.Visible = false end
+        tab.Visible = true
+        for _, btn in ipairs(tabButtons) do
+            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        end
+        tabBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+    end)
+    
+    table.insert(tabButtons, tabBtn)
+end
+
+--= Advanced Bypass System =--
+local function advancedBypass()
+    -- Memory manipulation
+    if not getgenv then getgenv = function() return _G end end
+    local env = getgenv()
+    
+    -- Hook spoofing
+    local originalNamecall
+    originalNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        if method == "Kick" or method == "Destroy" then
+            return nil
+        end
+        return originalNamecall(self, ...)
+    end)
+    
+    -- API spoofing
+    local oldIndex
+    oldIndex = hookmetamethod(game, "__index", function(t, k)
+        if tostring(t) == "Security" and k == "GetClientId" then
+            return HttpService:GenerateGUID(false)
+        end
+        return oldIndex(t, k)
+    end)
+    
+    -- Environment emulation
+    env.secure_call = function(f) return f() end
+    env.sandbox = env.sandbox or {}
+    env.sandbox.identity = 8
+end
+
+--= Feature System =--
+local features = {
+    ESP = {enabled = true, boxes = true, names = true, health = true},
+    Aimbot = {enabled = false, fov = 120, rayTracking = false},
+    WalkSpeed = {enabled = false, value = 50},
+    JumpPower = {enabled = false, value = 100},
+    InfiniteJump = false,
+    Trail = false,
+    FreeCam = false,
+    Noclip = false,
+    AntiLag = false,
+    AntiFling = false,
+    Fling = false,
+    Fly = false,
+    RTX = false,
+    Hitbox = {enabled = false, size = 2}
+}
+
+--= Premium Feature Implementations =--
+local connections = {}
+local espCache = {}
+local trailParts = {}
+local flyConnection
+
+-- Enhanced ESP System
+function updateESP()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character then
+            if features.ESP.enabled and not espCache[player] then
+                local espFrame = Instance.new("Folder")
+                espFrame.Name = "RSPY_ESP"
+                espFrame.Parent = player.Character
+                
+                -- Box Highlight
+                if features.ESP.boxes then
+                    local highlight = Instance.new("Highlight")
+                    highlight.OutlineTransparency = 0
+                    highlight.FillTransparency = 0.7
+                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    highlight.Adornee = player.Character
+                    highlight.Parent = espFrame
+                    
+                    -- Team Colors
+                    if player.Team ~= localPlayer.Team then
+                        highlight.FillColor = Color3.new(1, 0, 0)
+                    else
+                        highlight.FillColor = Color3.new(0, 1, 0)
+                    end
+                end
+                
+                -- Name Label
+                if features.ESP.names then
+                    local billboard = Instance.new("BillboardGui")
+                    billboard.Size = UDim2.new(0, 200, 0, 50)
+                    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+                    billboard.AlwaysOnTop = true
+                    billboard.Adornee = player.Character:WaitForChild("Head")
+                    billboard.Parent = espFrame
+                    
+                    local nameLabel = Instance.new("TextLabel")
+                    nameLabel.Text = player.DisplayName or player.Name
+                    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    nameLabel.BackgroundTransparency = 1
+                    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+                    nameLabel.TextStrokeTransparency = 0
+                    nameLabel.TextSize = 14
+                    nameLabel.Font = Enum.Font.GothamBold
+                    nameLabel.Parent = billboard
+                    
+                    -- Health Label
+                    if features.ESP.health then
+                        local healthLabel = Instance.new("TextLabel")
+                        healthLabel.Text = "HP: 100"
+                        healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                        healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+                        healthLabel.BackgroundTransparency = 1
+                        healthLabel.TextColor3 = Color3.new(1, 1, 0)
+                        healthLabel.TextStrokeTransparency = 0
+                        healthLabel.TextSize = 12
+                        healthLabel.Font = Enum.Font.Gotham
+                        healthLabel.Parent = billboard
+                        
+                        connections["HealthUpdate_"..player.Name] = player.Character.Humanoid.HealthChanged:Connect(function()
+                            healthLabel.Text = "HP: "..math.floor(player.Character.Humanoid.Health)
+                        end)
+                    end
+                end
+                
+                espCache[player] = espFrame
+            elseif not features.ESP.enabled and espCache[player] then
+                espCache[player]:Destroy()
+                espCache[player] = nil
+            end
+        end
+    end
+end
+
+-- Ray-Tracking Aimbot
+local function rayAimbot()
+    if not features.Aimbot.enabled then return end
+    
+    local closest, maxDist = nil, features.Aimbot.fov
+    local mousePos = UIS:GetMouseLocation()
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local headPos, onScreen = camera:WorldToViewportPoint(player.Character.Head.Position)
+            if onScreen then
+                local distance = (Vector2.new(mousePos.X, mousePos.Y) - Vector2.new(headPos.X, headPos.Y)).Magnitude
+                if distance < maxDist then
+                    closest = player.Character.Head
+                    maxDist = distance
+                end
+            end
+        end
+    end
+    
+    if closest then
+        -- Ray tracking
+        if features.Aimbot.rayTracking then
+            local origin = camera.CFrame.Position
+            local direction = (closest.Position - origin).Unit
+            camera.CFrame = CFrame.lookAt(origin, origin + direction * 100)
+        else
+            camera.CFrame = CFrame.lookAt(camera.CFrame.Position, closest.Position)
+        end
+    end
+end
+
+-- Fling System
+local function flingPlayer()
+    if not features.Fling then return end
+    
+    local closestPlayer, minDist = nil, math.huge
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (localPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                closestPlayer = player
+                minDist = dist
+            end
+        end
+    end
+    
+    if closestPlayer then
+        -- Teleport to player
+        localPlayer.Character.HumanoidRootPart.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+        
+        -- Apply fling force
+        closestPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 50000, 0)
+        closestPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(math.random(-50,50), math.random(-50,50), math.random(-50,50))
+    end
+end
+
+-- Trail System
+local function updateTrail()
+    if features.Trail and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = localPlayer.Character.HumanoidRootPart
+        
+        if #trailParts < 5 then
+            local trail = Instance.new("Part")
+            trail.Size = Vector3.new(0.5, 0.5, 0.5)
+            trail.CFrame = root.CFrame
+            trail.Anchored = true
+            trail.CanCollide = false
+            trail.Material = Enum.Material.Neon
+            trail.Color = Color3.new(0, 1, 1)
+            trail.Parent = workspace
+            table.insert(trailParts, trail)
+            
+            -- Fade effect
+            spawn(function()
+                for i = 1, 30 do
+                    trail.Transparency = i/30
+                    wait(0.03)
+                end
+                trail:Destroy()
+            end)
+        end
+    end
+    
+    -- Cleanup old trails
+    for i = #trailParts, 1, -1 do
+        if not trailParts[i].Parent then
+            table.remove(trailParts, i)
+        end
+    end
+end
+
+-- RTX Mode
+local function updateRTX()
+    if features.RTX then
+        Lighting.GlobalShadows = true
+        Lighting.ShadowSoftness = 0.2
+        Lighting.Brightness = 2
+        Lighting.ExposureCompensation = 0.5
+        
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Part") then
+                obj.Reflectance = 0.2
+                obj.Material = Enum.Material.SmoothPlastic
+            end
+        end
+    else
+        Lighting.GlobalShadows = false
+        Lighting.ShadowSoftness = 0
+        Lighting.Brightness = 1
+        Lighting.ExposureCompensation = 0
+    end
+end
+
+-- Flight System
+local function fly()
+    if not features.Fly then return end
+    local root = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local velocity = Vector3.new(0, 0, 0)
+    if UIS:IsKeyDown(Enum.KeyCode.W) then velocity = velocity + Vector3.new(0, 0, -5) end
+    if UIS:IsKeyDown(Enum.KeyCode.S) then velocity = velocity + Vector3.new(0, 0, 5) end
+    if UIS:IsKeyDown(Enum.KeyCode.A) then velocity = velocity + Vector3.new(-5, 0, 0) end
+    if UIS:IsKeyDown(Enum.KeyCode.D) then velocity = velocity + Vector3.new(5, 0, 0) end
+    if UIS:IsKeyDown(Enum.KeyCode.Space) then velocity = velocity + Vector3.new(0, 5, 0) end
+    if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then velocity = velocity + Vector3.new(0, -5, 0) end
+    
+    root.Velocity = velocity * 10
+end
+
+-- Anti-Lag System
+local function antiLag()
+    if not features.AntiLag then return end
+    
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Part") and obj.Transparency > 0.5 then
+            obj.Material = Enum.Material.Plastic
+        end
+        if obj:IsA("ParticleEmitter") then
+            obj.Enabled = false
+        end
+        if obj:IsA("Decal") then
+            obj.Transparency = 1
+        end
+    end
+end
+
+-- Exploit Detection
+local function detectExploiters()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                -- Detect impossible speeds
+                if root.Velocity.Magnitude > 300 then
+                    if espCache[player] then
+                        espCache[player]:FindFirstChildWhichIsA("Highlight").FillColor = Color3.new(1, 0, 1)
+                    end
+                end
+                
+                -- Detect flying
+                if root.Position.Y > 500 and not workspace:Raycast(root.Position, Vector3.new(0, -1000, 0), RaycastParams.new()) then
+                    if espCache[player] then
+                        espCache[player]:FindFirstChildWhichIsA("Highlight").FillColor = Color3.new(0, 1, 1)
+                    end
+                end
+            end
+        end
+    end
+end
+
+--= UI Controls =--
+local function createSection(title, parent)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 30)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Text = title
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.new(0.7, 0.8, 1)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    return frame
+end
+
+local function createToggle(name, parent, featurePath, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 30)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Text = name
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.BackgroundTransparency = 1
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.25, 0, 0.8, 0)
+    toggle.Position = UDim2.new(0.75, 0, 0.1, 0)
+    toggle.Text = "OFF"
+    toggle.TextColor3 = Color3.new(1, 0.3, 0.3)
+    toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    toggle.Font = Enum.Font.GothamMedium
+    toggle.Parent = frame
+    
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(0.4, 0)
+    
+    toggle.MouseButton1Click:Connect(function()
+        local current = features
+        for i = 1, #featurePath - 1 do
+            current = current[featurePath[i]]
+        end
+        current[featurePath[#featurePath]] = not current[featurePath[#featurePath]]
+        toggle.Text = current[featurePath[#featurePath]] and "ON" or "OFF"
+        toggle.TextColor3 = current[featurePath[#featurePath]] and Color3.new(0.3, 1, 0.3) or Color3.new(1, 0.3, 0.3)
+        if callback then callback() end
+    end)
+    
+    return toggle
+end
+
+local function createSlider(name, parent, min, max, featurePath)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 50)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Text = name
+    label.Size = UDim2.new(1, 0, 0.4, 0)
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.BackgroundTransparency = 1
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(1, 0, 0.3, 0)
+    slider.Position = UDim2.new(0, 0, 0.4, 0)
+    slider.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    slider.Parent = frame
+    Instance.new("UICorner", slider).CornerRadius = UDim.new(0.5, 0)
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0.5, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    fill.Parent = slider
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(0.5, 0)
+    
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Text = tostring((min + max) / 2)
+    valueLabel.Size = UDim2.new(1, 0, 0.3, 0)
+    valueLabel.Position = UDim2.new(0, 0, 0.7, 0)
+    valueLabel.TextColor3 = Color3.new(1, 1, 1)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Parent = frame
+    
+    local current = features
+    for i = 1, #featurePath - 1 do
+        current = current[featurePath[i]]
+    end
+    current[featurePath[#featurePath]] = (min + max) / 2
+    
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            local connection
+            connection = UIS.InputChanged:Connect(function(move)
+                if move.UserInputType == Enum.UserInputType.Touch then
+                    local posX = math.clamp((move.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+                    local value = math.floor(min + (max - min) * posX)
+                    fill.Size = UDim2.new(posX, 0, 1, 0)
+                    valueLabel.Text = tostring(value)
+                    current[featurePath[#featurePath]] = value
+                end
+            end)
+            
+            UIS.InputEnded:Connect(function(endInput)
+                if endInput.UserInputType == Enum.UserInputType.Touch then
+                    connection:Disconnect()
+                end
+            end)
+        end
+    end)
+end
+
+--= Create Controls =--
+-- Player Tab
+createSection("Movement", tabs.Player)
+createToggle("Speed Hack", tabs.Player, {"WalkSpeed", "enabled"})
+createSlider("Walk Speed", tabs.Player, 16, 200, {"WalkSpeed", "value"})
+createToggle("Jump Hack", tabs.Player, {"JumpPower", "enabled"})
+createSlider("Jump Power", tabs.Player, 50, 500, {"JumpPower", "value"})
+createToggle("Infinite Jump", tabs.Player, {"InfiniteJump"})
+createToggle("Flight", tabs.Player, {"Fly"})
+
+createSection("Protection", tabs.Player)
+createToggle("Anti-Fling", tabs.Player, {"AntiFling"})
+createToggle("Noclip", tabs.Player, {"Noclip"})
+
+-- Visuals Tab
+createSection("Player ESP", tabs.Visuals)
+createToggle("ESP Enabled", tabs.Visuals, {"ESP", "enabled"}, updateESP)
+createToggle("Boxes", tabs.Visuals, {"ESP", "boxes"}, updateESP)
+createToggle("Names", tabs.Visuals, {"ESP", "names"}, updateESP)
+createToggle("Health Bars", tabs.Visuals, {"ESP", "health"}, updateESP)
+createToggle("RTX Mode", tabs.Visuals, {"RTX"}, updateRTX)
+createToggle("Anti-Lag", tabs.Visuals, {"AntiLag"}, antiLag)
+
+-- Combat Tab
+createSection("Aimbot", tabs.Combat)
+createToggle("Aimbot Enabled", tabs.Combat, {"Aimbot", "enabled"})
+createToggle("Ray Tracking", tabs.Combat, {"Aimbot", "rayTracking"})
+createSlider("Aimbot FOV", tabs.Combat, 50, 300, {"Aimbot", "fov"})
+createToggle("Big Hitboxes", tabs.Combat, {"Hitbox", "enabled"})
+createSlider("Hitbox Size", tabs.Combat, 1, 5, {"Hitbox", "size"})
+
+createSection("Actions", tabs.Combat)
+createToggle("Fling Players", tabs.Combat, {"Fling"}, flingPlayer)
+
+-- World Tab
+createSection("Effects", tabs.World)
+createToggle("Trail Effect", tabs.World, {"Trail"})
+
+--= Core Loops =--
+connections.mainLoop = RunService.Heartbeat:Connect(function()
+    -- Movement systems
+    if localPlayer.Character then
+        local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            -- Walk Speed
+            humanoid.WalkSpeed = features.WalkSpeed.enabled and features.WalkSpeed.value or 16
+            
+            -- Jump Power
+            humanoid.JumpPower = features.JumpPower.enabled and features.JumpPower.value or 50
+            
+            -- Noclip
+            if features.Noclip then
+                for _, part in ipairs(localPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            
+            -- Flight
+            if features.Fly then fly() end
+            
+            -- Infinite Jump
+            if features.InfiniteJump and UIS:IsKeyDown(Enum.KeyCode.Space) then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end
+    
+    -- Anti-Fling
+    if features.AntiFling and localPlayer.Character then
+        local root = localPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.Velocity = Vector3.new(0, 0, 0)
+            root.RotVelocity = Vector3.new(0, 0, 0)
+        end
+    end
+    
+    -- Trail Effect
+    if features.Trail then updateTrail() end
+    
+    -- Exploit Detection
+    detectExploiters()
+end)
+
+connections.renderLoop = RunService.RenderStepped:Connect(function()
+    -- Aimbot
+    rayAimbot()
+    
+    -- Hitbox Expansion
+    if features.Hitbox.enabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= localPlayer and player.Character then
+                for _, part in ipairs(player.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Size = Vector3.new(features.Hitbox.size, features.Hitbox.size, features.Hitbox.size)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+--= Initialization =--
+advancedBypass()
+updateESP()
+updateRTX()
+antiLag()
+
+-- Auto-update ESP
+Players.PlayerAdded:Connect(updateESP)
+Players.PlayerRemoving:Connect(updateESP)
+
+-- Cleanup on script termination
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    for _, conn in pairs(connections) do
+        conn:Disconnect()
+    end
+    ScreenGui:Destroy()
+end)
